@@ -1,8 +1,7 @@
 # Docker-Use
 docker 使用心得
 
-
-### Homebrew 安装docker
+### Homebrew 安装docker（mac）
     * brew cask install docker
 ###  Docker 安装部署RabbitMQ
     *  docker search rabbitmq:management   management web管理界面
@@ -52,3 +51,78 @@ docker build -t mycar /Users/beifeitu/developer/java/mycar
 ``` run 
 docker run -d -p 8089:8089 mycar
 ```
+### Docker 安装 GitLab
+    * 下载镜像
+ ```pull 
+ sudo docker pull gitlab/gitlab-ce:latest
+ ```
+    * 启动镜像
+        * hostname指定容器中绑定的域名
+            * 会在创建镜像仓库的时候使用到
+            * 这里绑定  192.168.253.10
+        * publish 端口映射
+            * 冒号前面是宿主机端口，后面是容器expose出的端口
+            * https 端口443
+            * http 端口80
+            * ssh 端口22
+        * volume
+            * volume 映射，冒号前面是宿主机的一个文件路径
+            * 后面是容器中的文件路径
+             
+| 当地的位置 | <span class="Apple-tab-span" style="white-space:pre"></span>集装箱位置 | <span class="Apple-tab-span" style="white-space:pre"></span>用法 |
+| --- | --- | --- |
+| /mnt/gitlab/data | /var/opt/gitlab | 用于存储应用数据 |
+| /mnt/gitlab/logs | /var/log/gitlab  | 用于存储日志  |
+| /mnt/gitlab/config | /etc/gitlab | 用于存储GitLab配置文件
+            
+``` run 
+sudo docker run --detach \
+--hostname 192.168.253.10 \
+--publish 8443:443 --publish 8880:80 --publish 2222:22 \
+--name gitlab \
+--restart always \
+--volume /mnt/gitlab/config:/etc/gitlab \
+--volume /mnt/gitlab/logs:/var/log/gitlab \
+--volume /mnt/gitlab/data:/var/opt/gitlab \
+gitlab/gitlab-ce:latest
+```
+    * ssh 登录配置 
+``` config
+    /etc/gitlab/gitlab.rb
+    gitlab_rails['gitlab_shell_ssh_port'] = 2289
+```
+    * 邮件配置（因为GitLab Docker映像没有安装SMTP服务器）  
+``` smtp
+gitlab_rails['smtp_enable'] = true
+gitlab_rails['smtp_address'] = "smtp.server"
+gitlab_rails['smtp_port'] = 465
+gitlab_rails['smtp_user_name'] = "smtp user"
+gitlab_rails['smtp_password'] = "smtp password"
+gitlab_rails['smtp_domain'] = "example.com"
+gitlab_rails['smtp_authentication'] = "login"
+gitlab_rails['smtp_enable_starttls_auto'] = true
+gitlab_rails['smtp_openssl_verify_mode'] = 'peer'
+
+# If your SMTP server does not like the default 'From: gitlab@localhost' you
+# can change the 'From' with this setting.
+gitlab_rails['gitlab_email_from'] = 'gitlab@example.com'
+gitlab_rails['gitlab_email_reply_to'] = 'noreply@example.com'
+```
+    * 默认情况下，为SMTP启用SSL。如果您的SMTP服务器不支持通过SSL进行通信，请使用以下设置：
+```
+gitlab_rails['smtp_enable'] = true;
+gitlab_rails['smtp_address'] = 'localhost';
+gitlab_rails['smtp_port'] = 25;
+gitlab_rails['smtp_domain'] = 'localhost';
+gitlab_rails['smtp_tls'] = false;
+gitlab_rails['smtp_openssl_verify_mode'] = 'none'
+gitlab_rails['smtp_enable_starttls_auto'] = false
+gitlab_rails['smtp_ssl'] = false
+gitlab_rails['smtp_force_ssl'] = false
+```
+    * GitLab shell 命令
+```shell
+sudo docker exec -it gitlab /bin/bash
+gitlab-crl reconfigure -- 加载配置
+```
+   
