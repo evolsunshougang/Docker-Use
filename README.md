@@ -135,4 +135,12 @@ gitlab_rails['smtp_force_ssl'] = false
 ```shell
 sudo docker exec -it gitlab /bin/bash
 ``` 
-  
+    * 修改ssh端口 
+        * 修改/mnt/gitlab/gitlab.rb [gitlab.yml中的配置会被这个给覆盖]
+    * 在后面修改自己的ssh端口
+        * gitlab_rails['gitlab_shell_ssh_port'] = 21386
+    * gitlab-ctl reconfigure
+        * 默认是22端口，直接访问则不会出现端口的。）
+       * sudo gitlab-ctl restart
+       * 修改http路径
+           * /mnt/gitlab/data/gitlat-rails/gitlab.yml
