@@ -121,8 +121,18 @@ gitlab_rails['smtp_ssl'] = false
 gitlab_rails['smtp_force_ssl'] = false
 ```
     * GitLab shell 命令
+        * 重启gitlab服务
+            * gitlab-ctl restart
+        * 查看gitlab运行状态
+            * gitlab-ctl status
+        * 停止gitlab服务
+            * gitlab-ctl stop
+        * 查看gitlab运行日志
+            * gitlab-ctl tail
+        * 停止相关数据连接服务
+            * gitlab-ctl stop unicorn
+            * gitlab-ctl stop sideki
 ```shell
 sudo docker exec -it gitlab /bin/bash
-gitlab-crl reconfigure -- 加载配置
-```
-   
+``` 
+  
